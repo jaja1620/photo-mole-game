@@ -1,0 +1,119 @@
+{
+  "name": "photo-mole-game",
+  "display_name": "照片打地鼠游戏生成器",
+  "version": "1.2.0",
+  "author": "JaJa",
+  "entry": "SKILL.md",
+  "install_dir": "~/.workbuddy/skills/photo-mole-game",
+  "install_cmd_windows": "powershell -ExecutionPolicy Bypass -File .\\install.ps1",
+  "install_cmd_unix": "cp -r photo-mole-game ~/.workbuddy/skills/",
+  "python": ">=3.9",
+  "deps": [
+    "pillow",
+    "numpy",
+    "opencv-python"
+  ],
+  "deps_optional": [
+    "playwright"
+  ],
+  "runtime_deps": [
+    "本机 Edge（仅 verify_game.py 校验时用）",
+    "可选本地 sd-server http://127.0.0.1:8790"
+  ],
+  "file_count": 18,
+  "total_bytes": 279774,
+  "generated_at": "2026-11-18 13:25:45",
+  "changelog": "1.2.0: 表情小样一律纯色背景(默认洋红)+bgcheck背景检查门禁、抠图改色度键优先五步递减、惊喜图覆盖每个非轻松难度(easy不配)、来源三选一新增本地合成compose多版式、覆盖范围scope=same|per_diff须先问用户、manifest与示例config同步；1.1.0: 三道硬门禁(照片来源/表情小样三选一/惊喜图来源与文字)、构建前门禁校验、全身多姿势惊喜图、安装脚本与 manifest",
+  "files": [
+    {
+      "path": "INSTALL.md",
+      "size": 3551,
+      "sha256": "d668be14a5bc695052e5d67dd8fe7a9c36df8240ca72b9a99a4c6274fba64cf1"
+    },
+    {
+      "path": "README.md",
+      "size": 6616,
+      "sha256": "4e4140f7f50d6666dc5731c7ec18aad44dc7b151cbafe935d7302bb411a03229"
+    },
+    {
+      "path": "SKILL.md",
+      "size": 39767,
+      "sha256": "3d2ca6aac7d95a4a310627f9a57d3698c9a49b914386fb3a493d48e25214967f"
+    },
+    {
+      "path": "assets/game_template.html",
+      "size": 95934,
+      "sha256": "a21b31bfea1457ac02e942a1ada806ed5df019cc9e59d652bcfeba0af6c56d98"
+    },
+    {
+      "path": "examples/config.minimal.json",
+      "size": 3471,
+      "sha256": "e05a58a66b80fd11d4da84337e01b4bb7f2dafbb4e0537ee8e697a156955bce4"
+    },
+    {
+      "path": "examples/config.qiaotan.json",
+      "size": 3904,
+      "sha256": "592f2b68d604ca2b5224c8eb08b8eb3c3604f8faac6a8dc335b68d240306f386"
+    },
+    {
+      "path": "install.ps1",
+      "size": 4776,
+      "sha256": "0afb7c701e17c810a54dac51b31f704d44b7c1cccff95e83b94e39e7c900acac"
+    },
+    {
+      "path": "manifest.json",
+      "size": 4088,
+      "sha256": "d1f715d40d21a5b750b00452608a423dfbc56da879e2dd997cff3e94ed9e8e20"
+    },
+    {
+      "path": "references/config-schema.md",
+      "size": 7237,
+      "sha256": "85e4aa3216526fb8d109bd7ba231f050c60ea5a5fae8d523098aa1100a0e3792"
+    },
+    {
+      "path": "references/expressions.md",
+      "size": 6597,
+      "sha256": "8ba5fd4b458714292a0cfb0eaeb8e56b3b50441ed522f6823c5dba7cb1ea2952"
+    },
+    {
+      "path": "references/pitfalls.md",
+      "size": 7331,
+      "sha256": "95b46ae89aab0f5d3d1876372c9153bee9d09b8ae1829c86a54c984e328eb4a6"
+    },
+    {
+      "path": "scripts/build_game.py",
+      "size": 13753,
+      "sha256": "3327e67f1110fbae02bc0fc26bd2cf2b5a7cc246cfea721539986b1687e956fc"
+    },
+    {
+      "path": "scripts/cutout.py",
+      "size": 12160,
+      "sha256": "97d4d93684ccfa6f4779117fc44c4fc0c569c8c3ac850cb446fd030840f729b8"
+    },
+    {
+      "path": "scripts/gate.py",
+      "size": 13093,
+      "sha256": "af7f1e9036baa0b451eee465fb2d8effed985aacf2c4ead198f69907df35062d"
+    },
+    {
+      "path": "scripts/gen_expressions.py",
+      "size": 13394,
+      "sha256": "aa51ae0c0de015bc9b42fca5eb736b8106f50ff4c90faf3dd8c54bd35d0516f3"
+    },
+    {
+      "path": "scripts/gen_prize.py",
+      "size": 22530,
+      "sha256": "8cf595b6070e02e60b497bd69b9f09a54ebc8623b5fcad5ea85701d21b789e34"
+    },
+    {
+      "path": "scripts/make_sheet.py",
+      "size": 9780,
+      "sha256": "7f274bf9e3a660c0a243154b268ef3c4e301d5ae87e7a9f581e96c461dedb1d4"
+    },
+    {
+      "path": "scripts/verify_game.py",
+      "size": 11792,
+      "sha256": "5abe59f280ac715dce8ec0e1551d7551fd0049e6b906158cd1227fc172672116"
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "title": "敲小人",
+  "subtitle": "四档极简示例",
+  "kicker": "Demo · Minimal",
+  "lead": "这是一个最小可运行示例，用来验证参数化是否生效。",
+  "version": "v1.0.0",
+  "subject": {
+    "name": "小人",
+    "pronoun": "他"
+  },
+  "assetDir": "assets/",
+  "defaultDiff": "normal",
+  "diffOrder": [
+    "easy",
+    "normal",
+    "hard",
+    "hell"
+  ],
+  "difficulties": {
+    "easy": {
+      "name": "新手",
+      "desc": "三关热身",
+      "levels": 3,
+      "interval": 1200,
+      "up": 1700,
+      "target": 60,
+      "lives": 12,
+      "lifeCap": null,
+      "maxSame": 1
+    },
+    "normal": {
+      "name": "进阶",
+      "desc": "六关标准",
+      "levels": 6,
+      "interval": 900,
+      "up": 1300,
+      "target": 150,
+      "lives": 9,
+      "lifeCap": 15,
+      "maxSame": 2
+    },
+    "hard": {
+      "name": "挑战",
+      "desc": "九关硬核",
+      "levels": 9,
+      "interval": 550,
+      "up": 850,
+      "target": 300,
+      "lives": 7,
+      "lifeCap": 9,
+      "maxSame": 3
+    },
+    "hell": {
+      "name": "地狱",
+      "desc": "十二关极限",
+      "levels": 12,
+      "interval": 420,
+      "up": 700,
+      "target": 480,
+      "lives": 6,
+      "lifeCap": 8,
+      "maxSame": 3
+    }
+  },
+  "expressions": {
+    "normal": "normal.png",
+    "01_smug": "01_smug.png",
+    "02_tongue": "02_tongue.png",
+    "03_tease": "03_tease.png",
+    "04_taunt": "04_taunt.png",
+    "05_angry": "05_angry.png",
+    "06_cry": "06_cry.png",
+    "07_dizzy": "07_dizzy.png",
+    "08_surprised": "08_surprised.png",
+    "09_disdain": "09_disdain.png",
+    "10_sad": "10_sad.png"
+  },
+  "groups": {
+    "rise": [
+      "normal",
+      "01_smug",
+      "02_tongue",
+      "03_tease"
+    ],
+    "hurt": [
+      "05_angry",
+      "06_cry",
+      "07_dizzy",
+      "10_sad"
+    ],
+    "mock": [
+      "04_taunt",
+      "09_disdain"
+    ]
+  },
+  "deco": [
+    "01_smug",
+    "02_tongue",
+    "04_taunt",
+    "09_disdain"
+  ],
+  "rewards": {
+    "goldEgg": {
+      "life": 2,
+      "fallback": 80,
+      "text": "金蛋！"
+    },
+    "colorEgg": {
+      "life": 3,
+      "fallback": 150,
+      "text": "彩蛋！"
+    }
+  },
+  "easterEgg": {
+    "kicker": "Cleared {levels} Levels",
+    "tip": "点「领取惊喜」看通关奖励图",
+    "byDiff": {
+      "easy": {
+        "gift": "🎉",
+        "title": "全 部 通 关",
+        "face": "01_smug",
+        "text": "新手档完成，<mark>先热热身</mark>。"
+      },
+      "normal": {
+        "gift": "🎉",
+        "title": "全 部 通 关",
+        "face": "01_smug",
+        "prize": "prize_normal.jpg",
+        "text": "进阶档完成，<mark>奖励一张图</mark>。"
+      },
+      "hard": {
+        "gift": "☕",
+        "title": "硬 核 通 关",
+        "face": "07_dizzy",
+        "prize": "prize_hard.jpg",
+        "text": "挑战档完成，<mark>喝杯咖啡</mark>。"
+      },
+      "hell": {
+        "gift": "🏆",
+        "title": "地 狱 通 关",
+        "face": "08_surprised",
+        "prize": "prize_hell.jpg",
+        "text": "地狱档完成，<mark>这波真服了</mark>。"
+      }
+    }
+  },
+  "_comment_prize": "v1.2：easy 不配 prize；normal/hard/hell 三档各用不同惊喜图（要共用一张就三档都写 prize.jpg，并在 gate.py 用 --scope same）"
+}

@@ -1,0 +1,156 @@
+{
+  "title": "敲谈姐儿",
+  "subtitle": "办公室解压小游戏",
+  "kicker": "Office Arcade · No.01",
+  "lead": "她总在洞口探头，笑着挑衅你。锤子握好，别手软。",
+  "version": "v1.4.0",
+  "subject": {
+    "name": "她",
+    "pronoun": "她"
+  },
+  "assetDir": "assets/",
+  "defaultDiff": "normal",
+  "diffOrder": [
+    "easy",
+    "normal",
+    "hard",
+    "hell"
+  ],
+  "difficulties": {
+    "easy": {
+      "name": "轻松",
+      "desc": "慢慢冒头",
+      "levels": 9,
+      "interval": 1050,
+      "up": 1550,
+      "target": 260,
+      "lives": 15,
+      "lifeCap": null,
+      "maxSame": 1
+    },
+    "normal": {
+      "name": "普通",
+      "desc": "常规节奏",
+      "levels": 9,
+      "interval": 810,
+      "up": 1150,
+      "target": 450,
+      "lives": 10,
+      "lifeCap": 20,
+      "maxSame": 2
+    },
+    "hard": {
+      "name": "困难",
+      "desc": "快速连冒",
+      "levels": 12,
+      "interval": 600,
+      "up": 900,
+      "target": 700,
+      "lives": 8,
+      "lifeCap": 12,
+      "maxSame": 3
+    },
+    "hell": {
+      "name": "地狱",
+      "desc": "手速考验",
+      "levels": 15,
+      "interval": 420,
+      "up": 700,
+      "target": 1000,
+      "lives": 6,
+      "lifeCap": 10,
+      "maxSame": 4
+    }
+  },
+  "expressions": {
+    "normal": "normal.png",
+    "01_smug": "01_smug.png",
+    "02_tongue": "02_tongue.png",
+    "03_tease": "03_tease.png",
+    "04_taunt": "04_taunt.png",
+    "05_angry": "05_angry.png",
+    "06_cry": "06_cry.png",
+    "07_dizzy": "07_dizzy.png",
+    "08_surprised": "08_surprised.png",
+    "09_disdain": "09_disdain.png",
+    "10_sad": "10_sad.png"
+  },
+  "groups": {
+    "rise": [
+      "normal",
+      "01_smug",
+      "02_tongue",
+      "03_tease",
+      "04_taunt",
+      "09_disdain"
+    ],
+    "hurt": [
+      "05_angry",
+      "06_cry",
+      "07_dizzy",
+      "10_sad"
+    ],
+    "mock": [
+      "04_taunt",
+      "09_disdain",
+      "02_tongue"
+    ]
+  },
+  "deco": [
+    "01_smug",
+    "02_tongue",
+    "04_taunt",
+    "09_disdain",
+    "03_tease",
+    "10_sad",
+    "05_angry",
+    "07_dizzy",
+    "06_cry"
+  ],
+  "rewards": {
+    "goldEgg": {
+      "life": 1,
+      "fallback": 50,
+      "text": "金蛋！"
+    },
+    "colorEgg": {
+      "life": 2,
+      "fallback": 100,
+      "text": "彩蛋！"
+    }
+  },
+  "easterEgg": {
+    "kicker": "All {levels} Levels Cleared",
+    "tip": "准备了冰棍儿和咖啡，点「领取惊喜」还能看到专属彩蛋图",
+    "byDiff": {
+      "easy": {
+        "gift": "🍦",
+        "title": "打 服 了 ！",
+        "face": "01_smug",
+        "text": "你很厉害，把她打服了，<mark>谈姐儿请你吃冰棍儿</mark>～<br>凭通关截图到谈姐儿处领冰棍儿～"
+      },
+      "normal": {
+        "gift": "🍦",
+        "title": "打 服 了 ！",
+        "face": "01_smug",
+        "prize": "prize_normal.jpg",
+        "text": "你很厉害，把她打服了，<mark>谈姐儿请你吃冰棍儿</mark>～<br>凭通关截图到谈姐儿处领冰棍儿～"
+      },
+      "hard": {
+        "gift": "☕",
+        "title": "敲 出 包 了 ！",
+        "face": "07_dizzy",
+        "prize": "prize_hard.jpg",
+        "text": "你太厉害啦，敲得她都起包啦～<mark>谈姐儿请你喝咖啡</mark>～<br>凭通关截图到谈姐儿处领咖啡～"
+      },
+      "hell": {
+        "gift": "☕",
+        "title": "敲 出 包 了 ！",
+        "face": "07_dizzy",
+        "prize": "prize_hell.jpg",
+        "text": "你太厉害啦，敲得她都起包啦～<mark>谈姐儿请你喝咖啡</mark>～<br>凭通关截图到谈姐儿处领咖啡～"
+      }
+    }
+  },
+  "_comment_prize": "v1.2：easy 不配 prize；normal/hard/hell 每档各一张惊喜图"
+}
