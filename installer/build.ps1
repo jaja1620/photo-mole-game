@@ -14,6 +14,7 @@ Set-Location -Path $PSScriptRoot
 # 1) 定位载荷（技能本体），优先使用备份目录中的 v1.2.0 完整副本
 if ([string]::IsNullOrWhiteSpace($Payload)) {
     $candidates = @(
+        (Join-Path $PSScriptRoot "..\skill"),
         (Join-Path $PSScriptRoot "..\backup\photo-mole-game_v1.2.0"),
         (Join-Path $PSScriptRoot "..\photo-mole-game"),
         (Join-Path $env:USERPROFILE ".workbuddy\skills\photo-mole-game")

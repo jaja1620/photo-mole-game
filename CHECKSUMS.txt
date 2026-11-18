@@ -11,4 +11,5 @@ Verify on macOS / Linux:
   shasum -a 256 photo-mole-game-installer.exe photo-mole-game_v1.2.0.zip
 
 Payload inside the installer / zip: skill v1.2.0, 18 files, 279,774 bytes.
-Build: PyInstaller 6.22.3 / Python 3.11.8 / Tk 8.6, --onefile --windowed.
+Installer build: PyInstaller 6.22.3 (--onefile --windowed) on Python 3.11.8.
+Both values were re-verified after download from this release (HTTP 200, byte-identical).

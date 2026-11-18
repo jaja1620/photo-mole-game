@@ -196,8 +196,8 @@ skill/                 技能包本体（v1.2.0，18 个文件）
   manifest.json        逐文件 sha256
 installer/             GUI 一键安装器源码
   photo_mole_installer.py    Tkinter GUI + CLI，单文件
-  build.ps1 / build.bat      可复现的 PyInstaller 构建
-  photo-mole-game-installer.spec
+  build.ps1 / build.bat      可复现的 PyInstaller 构建（载荷取 ../skill）
+  photo-mole-game-installer.spec   可移植 spec，载荷解析方式同上
 CHECKSUMS.txt          Release 附件校验值
 ```
 

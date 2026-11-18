@@ -195,8 +195,8 @@ skill/                 the skill package itself (v1.2.0, 18 files)
   manifest.json        per-file sha256
 installer/             source of the GUI one-click installer
   photo_mole_installer.py    Tkinter GUI + CLI, single file
-  build.ps1 / build.bat      reproducible PyInstaller build
-  photo-mole-game-installer.spec
+  build.ps1 / build.bat      reproducible PyInstaller build (payload = ../skill)
+  photo-mole-game-installer.spec   portable spec, same payload resolution
 CHECKSUMS.txt          sha256 of the release assets
 ```
 

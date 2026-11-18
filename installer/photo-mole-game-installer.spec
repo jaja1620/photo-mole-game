@@ -1,11 +1,28 @@
 # -*- mode: python ; coding: utf-8 -*-
+# PyInstaller spec for photo-mole-game-installer.
+# Portable: the skill payload is resolved relative to this file (../skill),
+# or overridden with the PMG_SKILL_PAYLOAD environment variable.
+# Build:  python -m PyInstaller --clean -y photo-mole-game-installer.spec
+# Or just use build.ps1 / build.bat, which pass --add-data explicitly.
 
+import os
+
+_SPEC_DIR = os.path.dirname(os.path.abspath(SPEC))  # noqa: F821  (SPEC is provided by PyInstaller)
+_payload = os.environ.get("PMG_SKILL_PAYLOAD") or os.path.normpath(os.path.join(_SPEC_DIR, "..", "skill"))
+_payload = os.path.abspath(_payload)
+
+if not os.path.isfile(os.path.join(_payload, "SKILL.md")):
+    raise SystemExit(
+        "skill payload not found: %s\n"
+        "Expected a photo-mole-game skill directory (containing SKILL.md) at ../skill, "
+        "or set PMG_SKILL_PAYLOAD to its absolute path." % _payload
+    )
 
 a = Analysis(
     ['photo_mole_installer.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:/Users/2013083/AppData/Roaming/Tencent/Marvis/User/oAN1i2a0fVAITIdl93aRLTkg_DYY/workspace/conv_98ebfacfe330491d91792ce5ac9c282c/output/backup/photo-mole-game_v1.2.0', 'skill_payload/photo-mole-game')],
+    datas=[(_payload, 'skill_payload/photo-mole-game')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
