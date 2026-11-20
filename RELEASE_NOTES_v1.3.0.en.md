@@ -1,8 +1,9 @@
 # photo-mole-game v1.3.0 Release Notes
 
-> This is the English version. 中文版见同级目录 `RELEASE_NOTES_v1.3.0.md`.
+> 🌐 [简体中文](./RELEASE_NOTES_v1.3.0.md) ｜ **English**
+> This is the English version. The Chinese version sits next to it as `RELEASE_NOTES_v1.3.0.md`; the release page also carries a language switch bar at the top.
 
-- Release date: 2026-11-19
+- Release date: 2026-11-20
 - Previous version: v1.2.0
 - Author: JaJa
 - Theme: **cutouts must not eat the subject, cartoons must look like the actual person** — the two failure modes found in real runs (white shirts turning transparent, hair and collars keyed out as background; cartoon faces degrading into a generic anime face) are now enforced by scripts and hard gates.
