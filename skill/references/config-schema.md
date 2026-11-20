@@ -15,6 +15,11 @@ AIGC:
 
 示例见 `examples/config.qiaotan.json`（v1.4 原版，4 档繁配）与 `examples/config.minimal.json`（3 档最小示例）。
 
+> **v1.3 前置校验**：`build_game.py` 在吃这份 config 之前会先查两件事——
+> ① `gate.json` 四道门禁（照片来源 / 表情小样 / 惊喜图 / 身份相似度）齐全；
+> ② `assets/cutout.report.json` 存在且无 FAIL（抠图必须跑过 `cutout.py --verify`）。
+> 两者任一不满足直接报错退出，**config 写得再对也构不出东西**。调试期可用 `--allow-no-gate` 同时跳过这两项校验（会打印警告），但它只用于调模板，**交付构建必须去掉该参数**。
+
 ---
 
 ## 1. 基本信息

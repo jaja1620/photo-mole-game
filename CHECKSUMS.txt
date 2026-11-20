@@ -1,15 +1,19 @@
-photo-mole-game v1.2.0 — release assets checksums
+photo-mole-game v1.3.0 — release assets checksums
 (SHA-256, lowercase hex; size in bytes)
 
-69e704925d51751801cb2831468022b48ec69dddaee0d0c736717a5e06d474ed  photo-mole-game-installer.exe  10464319
-d2b8ddf4a6165d90e95c644b327cb8b121c99a2a784285fb6d1c101afe380d4e  photo-mole-game_v1.2.0.zip      193733
+52248d15b1e7b92301103e4e50f32904b9b2414e9b154351bd5126ce32efd82a  photo-mole-game-installer.exe  10436783
+4a63f892fb07f2d7239df1274d7bf7465d779f80e169655060249f973858035e  photo-mole-game_v1.3.0.zip      155111
+abb13e606b6d8cb3ff5355a40b89b38ae7d56f7ee91d71d0e510d535608c699f  RELEASE_NOTES_v1.3.0.md        13535
+b26d4303df49213713b5c1f4c2e7b878bd3c735c49f03bcda7837f463ee18018  RELEASE_NOTES_v1.3.0.en.md     14573
 
 Verify on Windows:
   Get-FileHash .\photo-mole-game-installer.exe -Algorithm SHA256
-  Get-FileHash .\photo-mole-game_v1.2.0.zip -Algorithm SHA256
+  Get-FileHash .\photo-mole-game_v1.3.0.zip -Algorithm SHA256
 Verify on macOS / Linux:
-  shasum -a 256 photo-mole-game-installer.exe photo-mole-game_v1.2.0.zip
+  shasum -a 256 photo-mole-game-installer.exe photo-mole-game_v1.3.0.zip
 
-Payload inside the installer / zip: skill v1.2.0, 18 files, 279,774 bytes.
-Installer build: PyInstaller 6.22.3 (--onefile --windowed) on Python 3.11.8.
-Both values were re-verified after download from this release (HTTP 200, byte-identical).
+Payload inside the installer / zip: skill v1.3.0, 19 files, 408,571 bytes.
+Installer build: PyInstaller 6.x (--onefile --windowed) on Python 3.11.8.
+
+Note: the digest of RELEASE_NOTES_v1.3.0.md changes whenever the release body is
+edited; the two binaries above never change inside a release.

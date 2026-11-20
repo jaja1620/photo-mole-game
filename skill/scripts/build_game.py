@@ -176,11 +176,14 @@ def key_for(cfg, filename):
 
 GATE_ITEMS = [("photo", "照片来源（谁给的图）"),
               ("expressions", "表情小样三选一确认"),
-              ("prize", "惊喜图来源与文字确认")]
+              ("prize", "惊喜图来源与文字确认"),
+              ("identity", "真人特征分析与卡通相似度确认（v1.3）")]
+
+IDENTITY_FAIL_SCORE = 65
 
 
 def gate_check(cfg_path, gate_path, allow_no_gate):
-    """v1.1 硬门禁：没走完三道确认就不许出游戏。"""
+    """v1.1 硬门禁：没走完四道确认就不许出游戏（v1.3 增加身份一致性门禁）。"""
     p = gate_path
     if not p:
         d0 = os.path.dirname(cfg_path)
@@ -189,9 +192,9 @@ def gate_check(cfg_path, gate_path, allow_no_gate):
                 p = cand
                 break
     if not p or not os.path.exists(p):
-        msg = ("未找到 gate.json，说明照片 / 表情小样 / 惊喜图这三关还没跟用户确认过。\n"
-               "  正确做法：先用 gate.py 逐项写入用户确认（--photo / --expressions / --prize），"
-               "再回来构建。\n  仅调试模板时可加 --allow-no-gate 跳过。")
+        msg = ("未找到 gate.json，说明照片 / 表情小样 / 惊喜图 / 卡通相似度这几关还没跟用户确认过。\n"
+               "  正确做法：先用 gate.py 逐项写入用户确认（--photo / --expressions / --prize / "
+               "--identity-*），再回来构建。\n  仅调试模板时可加 --allow-no-gate 跳过。")
         if allow_no_gate:
             print("  [警告] 已跳过门禁（--allow-no-gate）：%s" % msg.replace("\n", " "))
             return None
@@ -204,12 +207,66 @@ def gate_check(cfg_path, gate_path, allow_no_gate):
     if missing and not allow_no_gate:
         die("门禁未通过，还缺：%s\n  文件：%s\n  用 gate.py --show 查看当前状态，补齐后再构建。"
             % ("、".join(missing), p))
-    print("  [门禁] 通过 %s（%d/3 项已确认）" % (os.path.basename(p), 3 - len(missing)))
+    idf = g.get("identity") or {}
+    if idf.get("confirmed") and not allow_no_gate:
+        sc = idf.get("score")
+        if not isinstance(sc, int) or sc < IDENTITY_FAIL_SCORE:
+            die("身份门禁登记的相似度评分无效（%r）：%s\n"
+                "  v1.3 要求卡通形象与真人原图对照评分 ≥ %d 分才能构建。"
+                "请回阶段 A0 按差异点重做，不要绕过门禁直接构建。"
+                % (sc, "低于放行线" if isinstance(sc, int) else "缺失", IDENTITY_FAIL_SCORE))
+        if not idf.get("compare") or not os.path.exists(idf.get("compare")):
+            die("身份门禁登记的原图/卡通对照图不存在：%r\n"
+                "  请用 identity.py --compare-sheet 重新生成对照图并重写门禁。" % idf.get("compare"))
+        ftr = idf.get("features")
+        if not ftr or not os.path.exists(ftr):
+            die("身份门禁登记的真人特征 JSON 不存在：%r\n"
+                "  相似度必须建立在特征分析之上，请补齐特征 JSON。" % ftr)
+    print("  [门禁] 通过 %s（%d/%d 项已确认）"
+          % (os.path.basename(p), len(GATE_ITEMS) - len(missing), len(GATE_ITEMS)))
     for k, _cn in GATE_ITEMS:
         it = g.get(k) or {}
         if it.get("confirmed"):
-            print("         · %-11s 用户原话：%s" % (k, it.get("quote", "")))
+            extra = ""
+            if k == "identity":
+                extra = "  [相似度 %s 分 / %s]" % (it.get("score"), it.get("status"))
+            print("         · %-11s 用户原话：%s%s" % (k, it.get("quote", ""), extra))
     return g
+
+
+def cutout_report_check(asset_dir, allow_no_gate):
+    """v1.3 硬门禁：assets/cutout.report.json 必须存在且无 FAIL（红线 5：抠后必须比对）。"""
+    rp = os.path.join(asset_dir, "cutout.report.json")
+    if not os.path.exists(rp):
+        msg = ("未找到 %s，说明阶段 B 的「抠后比对」没做（cutout.py --verify）。\n"
+               "  抠图没验就构造，等于把阶段 B 白做，交付后用户第一眼就会看到\"人少了半个\"。\n"
+               "  正确做法：cutout.py --in raw/ --out assets/ --normalize --chroma auto "
+               "--verify --compare，看 cutout.report.json 全 PASS 再回来构建。\n"
+               "  仅调试模板时可加 --allow-no-gate 跳过。" % rp)
+        if allow_no_gate:
+            print("  [警告] 已跳过抠图报告校验（--allow-no-gate）")
+            return None
+        die(msg)
+    try:
+        rep = json.load(open(rp, encoding="utf-8"))
+    except Exception as e:
+        die("cutout.report.json 无法解析（%r），请重跑 cutout.py --verify。" % e)
+    sm = rep.get("summary") or {}
+    nfail = sm.get("fail") or 0
+    if not isinstance(nfail, int):
+        nfail = len(nfail or [])
+    rework = sm.get("rework") or []
+    warn_keys = sm.get("warn_keys") or []
+    if nfail and not allow_no_gate:
+        die("抠图报告存在 FAIL %d 张：%s\n  按红线 5，抠图不许吞掉主体/衣服/配件。"
+            "请回阶段 A 换背景色重生这几张，再重新 --analyze → 抠图 → --verify，"
+            "不要在这里硬调 --tol。\n  报告：%s"
+            % (nfail, ", ".join(rework) if rework else "(见报告)", rp))
+    print("  [抠图] 报告 %s：PASS %s / WARN %s / FAIL %s"
+          % (os.path.basename(rp), sm.get("pass", "?"), sm.get("warn", "?"), sm.get("fail", "?")))
+    if warn_keys:
+        print("         · WARN 待目视核对：%s" % ", ".join(warn_keys))
+    return rep
 
 
 def main():
@@ -227,6 +284,7 @@ def main():
     g = gate_check(cfg_path, a.gate, a.allow_no_gate)
     cfg = normalize(json.load(open(cfg_path, encoding="utf-8")), gate=g)
     asset_dir = os.path.abspath(a.assets or os.path.dirname(cfg_path))
+    cutout_report_check(asset_dir, a.allow_no_gate)
     out_dir = os.path.abspath(a.out)
     os.makedirs(out_dir, exist_ok=True)
 

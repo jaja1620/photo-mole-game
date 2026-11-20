@@ -63,6 +63,28 @@ PROMPT_NEG = ("photorealistic, photo, realistic skin texture, blurry, lowres, jp
               "3d render, plastic doll")
 STYLE_DEFAULT = "kawaii flat illustration style, 2d anime, vivid but soft colors"
 
+# v1.3：身份锁定负向词（--features 生效时自动追加）。
+# 这四条是「不像本人」的典型成因：换了个人、掉进通用动漫脸、发型跑掉、眼镜丢了、脸型变了。
+IDENTITY_NEG = ("different person, generic anime face, wrong hairstyle, missing glasses, "
+                "changed face shape, different hair color, unrecognizable identity")
+
+
+def load_identity(features_path):
+    """读 identity.py 的特征 JSON，返回 (desc_en, lock_pos, lock_neg, summary_cn)。
+    与 identity.py 共用同一份字段口径，避免两处规则漂移。"""
+    import importlib.util
+    here = os.path.dirname(os.path.abspath(__file__))
+    cand = os.path.join(here, "identity.py")
+    if not os.path.exists(cand):
+        raise SystemExit("缺少 scripts/identity.py，无法使用 --features")
+    spec = importlib.util.spec_from_file_location("pmg_identity", cand)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    data = mod.load_features(features_path)
+    em = mod.emit(data)
+    ok, missing, warns = mod.validate(data)
+    return em["desc_en"], em["lock_pos"], em["lock_neg"], em["summary_cn"], ok, missing, warns
+
 
 def resolve_bg(bg, bg_hex=""):
     """把 --bg / --bg-hex 解析成 (名称, #RRGGBB, 英文描述)。--bg-hex 优先。"""
@@ -82,12 +104,21 @@ def resolve_bg(bg, bg_hex=""):
     return bg, hx, d
 
 
-def build_prompt(desc, expr, style, extra="", bg="magenta", bg_hex=""):
+def build_prompt(desc, expr, style, extra="", bg="magenta", bg_hex="", lock_pos=""):
     _nm, hx, d = resolve_bg(bg, bg_hex)
     p = PROMPT_POS.format(desc=desc, expr=expr, style=style, bg=d, bg_hex=hx)
+    if lock_pos.strip():
+        p += ", " + lock_pos.strip()
     if extra.strip():
         p += ", " + extra.strip()
     return p
+
+
+def build_negative(lock_neg=""):
+    neg = PROMPT_NEG
+    if lock_neg.strip():
+        neg = neg + ", " + lock_neg.strip()
+    return neg
 
 
 def http_json(url, payload, timeout=600):
@@ -124,6 +155,9 @@ def main():
     ap.add_argument("--photo", required=True, help="用户上传的照片（正面清晰人像最佳）")
     ap.add_argument("--out", default="raw", help="原图输出目录")
     ap.add_argument("--desc", default="", help="人物形象描述（英文最优），用于保证角色一致性")
+    ap.add_argument("--features", default="",
+                    help="[v1.3] 真人面部特征 JSON（identity.py --template 产出）：自动写入 desc + 身份锁定"
+                         "正向词，负向词追加「不同的人/通用动漫脸/发型不符/缺眼镜/脸型改变」")
     ap.add_argument("--style", default=STYLE_DEFAULT, help="画风描述")
     ap.add_argument("--extra-prompt", default="", help="客户追加的修改要求")
     ap.add_argument("--endpoint", default="", help="sd-server 地址，如 http://127.0.0.1:8790；留空则只导出 prompt 清单")
@@ -155,11 +189,32 @@ def main():
         if not picked: raise SystemExit("--only 未匹配到任何表情")
 
     desc = a.desc.strip() or "the uploaded person, keep facial features and hairstyle recognizable"
+
+    # v1.3：--features 生效 → desc 与身份锁定词由真人特征 JSON 驱动，不再靠手写一句话
+    lock_pos, lock_neg, identity_meta = "", "", None
+    if a.features.strip():
+        f_desc, lock_pos, lock_neg, summary_cn, ok, missing, warns = load_identity(a.features)
+        desc = f_desc or desc
+        identity_meta = {"features": os.path.abspath(a.features), "desc": f_desc,
+                         "lock_pos": lock_pos, "lock_neg": lock_neg,
+                         "summary_cn": summary_cn, "validate_ok": bool(ok),
+                         "missing": missing, "warnings": warns}
+        print("[v1.3] 已载入真人特征: %s" % os.path.abspath(a.features))
+        print("  特征摘要: %s" % (summary_cn or "(空)"))
+        if not ok:
+            print("  [警告] 特征必填缺 %d 项：%s —— 建议先补再出图，否则容易不像本人"
+                  % (len(missing), ", ".join(missing)))
+        for w in warns:
+            print("  [建议] %s" % w)
+        print("  身份锁定词: %s" % lock_pos)
+
+    neg = build_negative(lock_neg)
     tasks = []
     for idx, (key, expr, cn) in enumerate(EXPRESSIONS):
         tasks.append({"key": key, "cn": cn, "expression": expr, "seed": a.seed + idx * 13,
-                      "prompt": build_prompt(desc, expr, a.style, a.extra_prompt, bg_name, bg_hex),
-                      "negative_prompt": PROMPT_NEG, "bg_hex": bg_hex, "file": key + ".png"})
+                      "prompt": build_prompt(desc, expr, a.style, a.extra_prompt, bg_name, bg_hex,
+                                             lock_pos),
+                      "negative_prompt": neg, "bg_hex": bg_hex, "file": key + ".png"})
     sel = [t for t in tasks if t in tasks and t["key"] in [p[0] for p in picked]]
 
     if a.list:
@@ -176,6 +231,9 @@ def main():
     manifest = {"photo": os.path.abspath(a.photo), "desc": desc, "style": a.style,
                 "bg": {"name": bg_name, "hex": bg_hex},
                 "extra_prompt": a.extra_prompt, "mode": "pending", "items": []}
+    if identity_meta:
+        manifest["identity"] = identity_meta
+        manifest["version"] = "1.3.0"
 
     if a.manifest_only or not a.endpoint:
         for t in sel:
@@ -196,8 +254,9 @@ def main():
         print("[1/2] 生成定妆照 base.png ...")
         try:
             img_b64 = img2img(a.endpoint, photo_b64,
-                              build_prompt(desc, EXPRESSIONS[0][1], a.style, "", bg_name, bg_hex),
-                              PROMPT_NEG, a.strength, a.steps, a.sampler, a.cfg, a.seed, a.width, a.height)
+                              build_prompt(desc, EXPRESSIONS[0][1], a.style, "", bg_name, bg_hex,
+                                           lock_pos),
+                              neg, a.strength, a.steps, a.sampler, a.cfg, a.seed, a.width, a.height)
             bp = os.path.join(a.out, "base.png")
             open(bp, "wb").write(base64.b64decode(img_b64))
             base_b64 = img_b64

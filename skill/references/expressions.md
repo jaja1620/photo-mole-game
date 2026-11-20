@@ -35,25 +35,37 @@ AIGC:
 
 ## 2. 提示词模板
 
-**正向**（`gen_expressions.py` 内 `PROMPT_POS`）：
+**正向**（`gen_expressions.py` 内 `PROMPT_POS`，v1.2 起内置纯色底、v1.3 起尾部追加身份锁定词）：
 
 ```
 chibi anime cartoon portrait of {desc}, {expr}, upper body head and shoulders,
 facing viewer, centered, {style}, thick clean outline, soft cel shading,
-flat pastel background, high quality, sharp focus
+{bg} background ({bg_hex}), completely uniform fill, no gradient, no vignette,
+no shadow, no props, high quality, sharp focus
 ```
 
-- `{desc}` = `--desc`，人物外观描述，**角色一致性主要靠它**
+- `{desc}` = `--desc`；**带 `--features features.json` 时由特征 JSON 自动拼英文描述**，权重优先于 `--desc`
 - `{expr}` = 上表的表情描述
 - `{style}` = `--style`，默认 `kawaii flat illustration style, 2d anime, vivid but soft colors`
+- `{bg}` / `{bg_hex}` = `--bg magenta|green|blue|white`（默认 magenta）或 `--bg-hex #RRGGBB`，纯色是抠图前提，**不要删**
+- 传了 `--features` 时 prompt 末尾追加身份锁定片段（同发型、同眼镜、同脸型、可辨认是本人），由 `identity.py --emit` 生成
 
-**负向**（`PROMPT_NEG`）：
+**负向**（`PROMPT_NEG` + v1.3 的 `IDENTITY_NEG`）：
 
 ```
 photorealistic, photo, realistic skin texture, blurry, lowres, jpeg artifacts,
 deformed face, asymmetric eyes, distorted mouth, extra fingers, bad hands,
-text, watermark, signature, multiple people, cropped head, cluttered background,
+text, watermark, signature, multiple people, cropped head,
+gradient background, textured background, patterned wall, scenery, landscape,
+bokeh, room interior, drop shadow, cast shadow, props, furniture,
 3d render, plastic doll
+```
+
+带 `--features` 时再追加 `IDENTITY_NEG`：
+
+```
+different person, generic anime face, wrong hairstyle, missing glasses,
+changed face shape, different hair color, unrecognizable identity
 ```
 
 这套负向词是从 v1.4 的实际翻车里长出来的，别删：
@@ -63,6 +75,8 @@ text, watermark, signature, multiple people, cropped head, cluttered background,
 - `cropped head / multiple people` —— img2img 在 strength 偏高时会切头或复制出第二个人
 - `text / watermark` —— 出图带水印/文字会破坏透明抠图
 - `3d render / plastic doll` —— 会跑成黏土风，与扁平赛璐璐不搭
+- `gradient / textured / scenery / bokeh / drop shadow / props`（v1.2 补）—— 任何非纯色背景都会让抠图带毛边
+- `different person / generic anime face / missing glasses / changed face shape`（v1.3 补）—— 不压就会出"通用动漫脸"，跟本人对不上
 
 ---
 
@@ -116,10 +130,49 @@ text, watermark, signature, multiple people, cropped head, cluttered background,
 
 拿小样前自己先按这 6 条筛，不合格的直接重做，别把半成品推给客户：
 
-1. **像本人**：五官布局与发型可辨认（相似度是这类游戏唯一的"诚意指标"）
+1. **像本人（硬指标）**：用 `identity.py --compare-sheet` 打分，≥80 才算过；65~80 先问客户，<65 直接重做。五官布局、发型、眼镜、脸型必须对得上 `features.json`
 2. **眼睛对称**：双眼位置、大小、瞳孔方向不一致 → 废
 3. **头部完整**：没有裁掉头顶、下巴、耳朵
 4. **只有一个人**：出现第二张脸/多余肢体 → 废
 5. **表情到位**：11 张之间看得出差别，不能全是同一个表情微调
-6. **背景干净**：单色或简单渐变，否则抠图会带毛边
+6. **背景纯色**：只允许 magenta / green / blue / white 四选一，`make_sheet.py --check-bg` 出 FAIL 的一律不许发客户；渐变、场景、投影、道具都会被抠图放大成花边
+---
+
+## 7. 身份锁定（v1.3）
+
+`scripts/identity.py` 把"像不像本人"从感觉变成可执行的三步：
+
+| 步骤 | 命令 | 产出 |
+| --- | --- | --- |
+| 出骨架 | `identity.py --template --out features.json` | 待填的特征 JSON（字段齐全的空壳） |
+| 校验 | `identity.py --validate features.json` | 必填项缺口清单，缺一项就不许往下走 |
+| 出词 | `identity.py --emit features.json` | 英文 `desc` + 身份锁定正向词 + 负向词 + 中文特征总结 |
+| 打分 | `identity.py --compare-sheet --photo me.jpg --cartoon assets/normal.png --features features.json --out compare.jpg --score-out score.json` | 原图/卡通并排对照图 + 相似度评分 |
+
+特征 JSON 字段（必填 11 项，其余选填但强烈建议填满）：
+
+| 字段 | 说明 | 示例 |
+| --- | --- | --- |
+| `face_shape` | 脸型 | `oval` / `round` / `square` / `heart` |
+| `skin_tone` | 肤色 | `fair warm beige` |
+| `hair_length` | 发型长度 | `shoulder-length` |
+| `hair_parting` | 分缝 | `middle part` |
+| `hair_color` | 发色 | `black with brown highlights` |
+| `hair_texture` | 发丝质感 | `straight` / `wavy` / `curly` |
+| `bangs` | 刘海 | `side-swept bangs` |
+| `eyebrows` | 眉形 | `soft arched` |
+| `eyes` | 眼睛（含眼皮、瞳色、睫毛） | `double eyelid, dark brown iris, thick lashes` |
+| `glasses` | 眼镜款式（无则写 `none`） | `thin gold round frame` |
+| `nose` | 鼻型 | `small round tip` |
+| `mouth` | 嘴/唇 | `full lower lip, slight smile` |
+| `ears` | 耳 | `small, visible` |
+| `marks` | 特殊标记（痣/纹/胡须/妆容） | `small mole under left eye` |
+| `accessories` | 耳饰等配件 | `small silver stud earrings` |
+| `clothing` | 服装领型、颜色、图案 | `white shirt, navy V-neck vest` |
+| `age_feel` | 年龄感 | `late 20s, friendly` |
+| `distinctive` | 一句话最能认出本人的点 | `round glasses + chin-length bob` |
+
+评分权重：脸型 25 / 发型 25 / 眼睛 15 / 眼镜 15 / 肤色 10 / 服装 10。权重高的字段写错（比如漏了眼镜），分数掉得最快——**先核对这几项**。
+
 *（内容由AI生成，仅供参考）*
+

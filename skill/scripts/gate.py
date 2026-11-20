@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-gate.py — 交互门禁（v1.1 新增）
+gate.py — 交互门禁（v1.1 新增，v1.2 加背景检查，v1.3 加身份一致性）
 
 作用：把"必须问用户的三件事"从说明书里的软要求，变成落到磁盘上的硬约束。
       build_game.py 在构建前会检查 gate.json，缺项直接拒绝构建。
 
-三道门禁：
+四道门禁：
   1. photo        照片来源已由用户明确指定（上传 / 本机路径 / 从检索候选中挑选）
   2. expressions  表情小样已给用户看过，用户已明确三选一（全部通过 / 全部重做 / 指定重做）
   3. prize        惊喜图来源已确认（用户上传 / 系统生成），文字方案已确认
+  4. identity     （v1.3）卡通形象与真人特征一致：特征 JSON 齐备 + 相似度评分达标 + 对照图存在
 
 用法：
   python {baseDir}/scripts/gate.py --file work/敲小人/gate.json --show
@@ -18,19 +19,27 @@ gate.py — 交互门禁（v1.1 新增）
       --expressions all_pass --sheet work/敲小人/raw/sheet.jpg --quote "全部通过"
   python {baseDir}/scripts/gate.py --file work/敲小人/gate.json \
       --prize ai_generated --poses 3 --text "请喝咖啡" --text-source user --quote "文字用这个"
+  python {baseDir}/scripts/gate.py --file work/敲小人/gate.json \
+      --identity-features work/敲小人/features.json --identity-score 86 \
+      --identity-compare work/敲小人/compare/identity.jpg --quote "挺像我的，继续"
   python {baseDir}/scripts/gate.py --file work/敲小人/gate.json --reset expressions
 
 硬规则（写进 SKILL.md，违反即视为任务失败）：
   - --quote 必须逐字引用用户的原话，禁止自行编造；没有用户回复就不要写门禁。
   - photo 门禁的 --source 必须是 user_upload / user_path / user_picked 之一。
     agent 擅自检索并直接采用照片（source=agent_searched 且无用户挑选记录）不允许通过。
+  - identity 门禁（v1.3）必须同时给齐特征 JSON、相似度评分、对照图，且评分 < 65 直接拒绝。
   - 门禁文件一旦写入，--quote 与时间戳留痕，便于事后追溯是哪一句用户回复授权的。
 """
 import argparse
+import importlib.util
 import json
 import os
 import sys
 import time
+
+IDENTITY_FAIL_SCORE = 65          # 低于此分不放行（与 identity.py 保持一致）
+IDENTITY_PASS_SCORE = 80
 
 SOURCES_PHOTO = {
     "user_upload": "用户上传的图片",
@@ -49,6 +58,18 @@ EXPR_DECISIONS = {
 }
 
 OK, WARN = "  [OK]", "  [!!]"
+
+
+def _load_identity_mod():
+    """复载同目录的 identity.py，复用它的字段口径与评分阈值。"""
+    here = os.path.dirname(os.path.abspath(__file__))
+    cand = os.path.join(here, "identity.py")
+    if not os.path.exists(cand):
+        return None
+    spec = importlib.util.spec_from_file_location("pmg_identity_gate", cand)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def load(p):
@@ -110,7 +131,15 @@ def summarize(d):
     else:
         print(WARN + " 3.惊喜  未确认 —— 必须问齐三件事：①上传还是系统生成 "
                      "②同一张还是每个难度各一张 ③图上文字谁给")
-    left = [k for k, v in (("photo", ph), ("expressions", ex), ("prize", pz)) if not v.get("confirmed")]
+    idf = d.get("identity") or {}
+    if idf.get("confirmed"):
+        print(OK + " 4.身份  相似度 %s 分（%s）/ 对照图 %s  (用户说：%s)" % (
+            idf.get("score"), idf.get("status"), idf.get("compare"), idf.get("quote")))
+    else:
+        print(WARN + " 4.身份  未确认 —— 必须先做真人特征分析 + 原图与卡通对照评分，"
+                     "并拿到用户「像不像」的明确回复")
+    left = [k for k, v in (("photo", ph), ("expressions", ex), ("prize", pz),
+                           ("identity", idf)) if not v.get("confirmed")]
     print("\n缺口: %s" % ("、".join(left) if left else "无，可以构建游戏"))
     return left
 
@@ -119,7 +148,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--file", default="gate.json", help="门禁文件路径，建议 work/<主题>/gate.json")
     ap.add_argument("--show", action="store_true", help="只看当前状态")
-    ap.add_argument("--reset", default="", help="重置某道门禁：photo / expressions / prize / all")
+    ap.add_argument("--reset", default="",
+                    help="重置某道门禁：photo / expressions / prize / identity / all")
+
+    g = ap.add_argument_group("门禁 4 身份一致性（v1.3）")
+    g.add_argument("--identity-features", default="",
+                   help="真人面部特征 JSON（identity.py --template 产出），必须通过 --validate")
+    g.add_argument("--identity-score", type=int, default=-1,
+                   help="原图与卡通图的相似度评分（0~100，identity.py --compare-sheet 给出）")
+    g.add_argument("--identity-compare", default="",
+                   help="原图与卡通的对照图路径（identity.py --compare-sheet 产出）")
 
     g = ap.add_argument_group("门禁 1 照片")
     g.add_argument("--photo", default="", help="用户选定的照片绝对路径")
@@ -149,10 +187,10 @@ def main():
 
     d = load(a.file)
     d["file"] = os.path.abspath(a.file)
-    d.setdefault("version", "1.2")
+    d.setdefault("version", "1.3")
 
     if a.reset:
-        for k in (["photo", "expressions", "prize"] if a.reset == "all" else [a.reset]):
+        for k in (["photo", "expressions", "prize", "identity"] if a.reset == "all" else [a.reset]):
             d.pop(k, None)
         save(a.file, d)
         print("  已重置: %s" % a.reset)
@@ -245,6 +283,52 @@ def main():
                            "text": a.text.strip(), "text_source": a.text_source if a.text.strip() else "",
                            "pick": os.path.abspath(os.path.expanduser(a.pick)) if a.pick else "",
                            "quote": q})
+        changed = True
+
+    id_requested = bool(a.identity_features.strip() or a.identity_compare.strip()
+                        or a.identity_score >= 0)
+    if id_requested:
+        if not a.identity_features.strip():
+            sys.exit("  [错误] 身份门禁必须先用 --identity-features 指定真人特征 JSON"
+                     "（identity.py --template 产出，逐字段填好后过 --validate）")
+        fp = os.path.abspath(os.path.expanduser(a.identity_features.strip()))
+        if not os.path.exists(fp):
+            sys.exit("  [错误] 特征 JSON 不存在: %s —— 没做过特征分析就不算确认过身份" % fp)
+        mod = _load_identity_mod()
+        if mod is None:
+            sys.exit("  [错误] 缺少 scripts/identity.py，无法校验特征 JSON")
+        data = mod.load_features(fp)
+        ok, missing, warns = mod.validate(data)
+        if not ok:
+            sys.exit("  [错误] 特征 JSON 还有 %d 项必填为空：%s\n"
+                     "           先把这些字段补上（问用户或看图确认），再做对照评分。"
+                     % (len(missing), "、".join(missing)))
+        if a.identity_score < 0:
+            sys.exit("  [错误] 身份门禁必须用 --identity-score 给出相似度评分（0~100），"
+                     "由 identity.py --compare-sheet 产出")
+        if a.identity_score > 100:
+            sys.exit("  [错误] --identity-score 范围 0~100，收到 %d" % a.identity_score)
+        if a.identity_score < IDENTITY_FAIL_SCORE:
+            sys.exit("  [错误] 相似度 %d 分低于放行线 %d —— 这版卡通不像本人，不许当定案。\n"
+                     "           请先按差异点重做（改 features 里不符的字段 → gen_expressions.py "
+                     "--features 重出 → 重新对照评分），不要在这里硬调。"
+                     % (a.identity_score, IDENTITY_FAIL_SCORE))
+        if not a.identity_compare.strip():
+            sys.exit("  [错误] 身份门禁必须用 --identity-compare 指定原图与卡通的对照图"
+                     "（identity.py --compare-sheet 产出），没有对照图不认")
+        cp = os.path.abspath(os.path.expanduser(a.identity_compare.strip()))
+        if not os.path.exists(cp):
+            sys.exit("  [错误] 对照图不存在: %s —— 必须真的生成过对照图" % cp)
+        q = need_quote(a, "身份一致性")
+        status = "PASS" if a.identity_score >= IDENTITY_PASS_SCORE else "WARN"
+        if status == "WARN":
+            print("  [提示] 相似度 %d 分属于「勉强能认」（PASS 线 %d）：建议先问用户像不像，"
+                  "不要自己判断'差不多'" % (a.identity_score, IDENTITY_PASS_SCORE))
+        print("  身份锁定词: %s" % (mod.emit(data).get("lock_pos") or ""))
+        stamp(d, "identity", {"confirmed": True, "score": a.identity_score, "status": status,
+                              "features": fp, "compare": cp,
+                              "summary_cn": mod.emit(data).get("summary_cn", ""),
+                              "warnings": warns, "quote": q})
         changed = True
 
     if changed:

@@ -1,7 +1,7 @@
 {
   "name": "photo-mole-game",
   "display_name": "照片打地鼠游戏生成器",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "JaJa",
   "entry": "SKILL.md",
   "install_dir": "~/.workbuddy/skills/photo-mole-game",
@@ -21,24 +21,24 @@
     "可选本地 sd-server http://127.0.0.1:8790"
   ],
   "file_count": 18,
-  "total_bytes": 279774,
-  "generated_at": "2026-11-18 13:25:45",
-  "changelog": "1.2.0: 表情小样一律纯色背景(默认洋红)+bgcheck背景检查门禁、抠图改色度键优先五步递减、惊喜图覆盖每个非轻松难度(easy不配)、来源三选一新增本地合成compose多版式、覆盖范围scope=same|per_diff须先问用户、manifest与示例config同步；1.1.0: 三道硬门禁(照片来源/表情小样三选一/惊喜图来源与文字)、构建前门禁校验、全身多姿势惊喜图、安装脚本与 manifest",
+  "total_bytes": 402961,
+  "generated_at": "2026-11-19 14:49:28",
+  "changelog": "1.3.0: 抠图加固(cutout.py 新增--analyze抠前分析定参/默认主体保护/--verify抠后以独立主体基准比对九项指标(keep_ratio/iou/hole_rate/edge_cut_ratio/comp2_ratio/dent_ratio/dent_area_ratio/fg_ratio/edge_color_diff)出cutout.report.json并FAIL非零退出，禁止用自身mask自证；dent_ratio>0.50且dent_area_ratio>1%或dent_ratio>0.65直接判FAIL，深凹坏图不再只WARN绕过门禁)/--compare原图对照图)+卡通一致性加固(新增identity.py真人面部特征JSON与--compare-sheet相似度评分、gen_expressions.py新增--features身份锁定词、gate.py与build_game.py新增身份一致性门禁、SKILL.md新增阶段A0)、阶段B改为抠前分析→定参→抠图→抠后比对、红线四条扩为六条、manifest与示例config同步; 1.3.0: 抠图加固(cutout.py 新增--analyze抠前分析定参/默认主体保护即色度键与GrabCut前景交叉校验回填主体/--verify抠后以独立主体基准比对八项指标(keep_ratio/iou/hole_rate/edge_cut_ratio/comp2_ratio/dent_ratio/fg_ratio/edge_color_diff)出cutout.report.json并FAIL非零退出，禁止用自身mask自证/--compare原图对照图)+卡通一致性加固(新增identity.py真人面部特征JSON与--compare-sheet相似度评分、gen_expressions.py新增--features身份锁定词、gate.py与build_game.py新增身份一致性门禁、SKILL.md新增阶段A0)、阶段B改为抠前分析→定参→抠图→抠后比对、红线四条扩为六条、manifest与示例config同步; 1.2.0: 表情小样一律纯色背景(默认洋红)+bgcheck背景检查门禁、抠图改色度键优先五步递减、惊喜图覆盖每个非轻松难度(easy不配)、来源三选一新增本地合成compose多版式、覆盖范围scope=same|per_diff须先问用户、manifest与示例config同步；1.1.0: 三道硬门禁(照片来源/表情小样三选一/惊喜图来源与文字)、构建前门禁校验、全身多姿势惊喜图、安装脚本与 manifest",
   "files": [
     {
       "path": "INSTALL.md",
-      "size": 3551,
-      "sha256": "d668be14a5bc695052e5d67dd8fe7a9c36df8240ca72b9a99a4c6274fba64cf1"
+      "size": 4425,
+      "sha256": "ab91d7b2b3a613ceb60aa4b4183667f9cbe641737e8840798587de11c4f887ae"
     },
     {
       "path": "README.md",
-      "size": 6616,
-      "sha256": "4e4140f7f50d6666dc5731c7ec18aad44dc7b151cbafe935d7302bb411a03229"
+      "size": 8789,
+      "sha256": "e411d664fc15c66338d46348ab5586802e2d30c0ea2241df04f8331d61c3df12"
     },
     {
       "path": "SKILL.md",
-      "size": 39767,
-      "sha256": "3d2ca6aac7d95a4a310627f9a57d3698c9a49b914386fb3a493d48e25214967f"
+      "size": 64371,
+      "sha256": "c5dfd28c61315420e5e9b50b20f81c4795aee1250d12dd5ef741b8a843a02506"
     },
     {
       "path": "assets/game_template.html",
@@ -61,49 +61,49 @@
       "sha256": "0afb7c701e17c810a54dac51b31f704d44b7c1cccff95e83b94e39e7c900acac"
     },
     {
-      "path": "manifest.json",
-      "size": 4088,
-      "sha256": "d1f715d40d21a5b750b00452608a423dfbc56da879e2dd997cff3e94ed9e8e20"
-    },
-    {
       "path": "references/config-schema.md",
-      "size": 7237,
-      "sha256": "85e4aa3216526fb8d109bd7ba231f050c60ea5a5fae8d523098aa1100a0e3792"
+      "size": 7775,
+      "sha256": "f41b3d85bfcba16317fbb2fb00de0a067c5838bb609230794c839fd91045b00f"
     },
     {
       "path": "references/expressions.md",
-      "size": 6597,
-      "sha256": "8ba5fd4b458714292a0cfb0eaeb8e56b3b50441ed522f6823c5dba7cb1ea2952"
+      "size": 10064,
+      "sha256": "420460ff95ef0a870cc615a581f732ba4bdf6950869b8e0363ae4158a618c2b5"
     },
     {
       "path": "references/pitfalls.md",
-      "size": 7331,
-      "sha256": "95b46ae89aab0f5d3d1876372c9153bee9d09b8ae1829c86a54c984e328eb4a6"
+      "size": 15002,
+      "sha256": "b87d7fdff467d64e6cf04a09b6f4d1c540ab8aeaee1163c90e7b0ec6f3c26b5b"
     },
     {
       "path": "scripts/build_game.py",
-      "size": 13753,
-      "sha256": "3327e67f1110fbae02bc0fc26bd2cf2b5a7cc246cfea721539986b1687e956fc"
+      "size": 17198,
+      "sha256": "b26bf221436a51c4f42c75ba602eda57237fe73f6225c58e60420d0746d1502a"
     },
     {
       "path": "scripts/cutout.py",
-      "size": 12160,
-      "sha256": "97d4d93684ccfa6f4779117fc44c4fc0c569c8c3ac850cb446fd030840f729b8"
+      "size": 60882,
+      "sha256": "de9f4e344159cc6b89d17d18c42b2813dfe73f0956097885d9e3a9660afade64"
     },
     {
       "path": "scripts/gate.py",
-      "size": 13093,
-      "sha256": "af7f1e9036baa0b451eee465fb2d8effed985aacf2c4ead198f69907df35062d"
+      "size": 18438,
+      "sha256": "75e0822d36f1bd32971a6f28a4202ce681e53f2e4fdc0f62b815826e8a746421"
     },
     {
       "path": "scripts/gen_expressions.py",
-      "size": 13394,
-      "sha256": "aa51ae0c0de015bc9b42fca5eb736b8106f50ff4c90faf3dd8c54bd35d0516f3"
+      "size": 16391,
+      "sha256": "7daf36bd761a167c6a701382547c237d60a3bf7145bb4ea56e41840fa07930ec"
     },
     {
       "path": "scripts/gen_prize.py",
       "size": 22530,
       "sha256": "8cf595b6070e02e60b497bd69b9f09a54ebc8623b5fcad5ea85701d21b789e34"
+    },
+    {
+      "path": "scripts/identity.py",
+      "size": 27439,
+      "sha256": "d7e4723e8743c4f16aa48afc2d11129a0195b7491bff10f29455c385538cce70"
     },
     {
       "path": "scripts/make_sheet.py",

@@ -11,13 +11,14 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location -Path $PSScriptRoot
 
-# 1) 定位载荷（技能本体），优先使用备份目录中的 v1.2.0 完整副本
+# 1) 定位载荷（技能本体）：默认用 payload\photo-mole-game 快照（= 交付 zip 内容），
+#    其次是 v1.3.0 备份目录、本机已装的 WorkBuddy 技能目录，最后才是旧的 output\photo-mole-game。
 if ([string]::IsNullOrWhiteSpace($Payload)) {
     $candidates = @(
-        (Join-Path $PSScriptRoot "..\skill"),
-        (Join-Path $PSScriptRoot "..\backup\photo-mole-game_v1.2.0"),
-        (Join-Path $PSScriptRoot "..\photo-mole-game"),
-        (Join-Path $env:USERPROFILE ".workbuddy\skills\photo-mole-game")
+        (Join-Path $PSScriptRoot "payload\photo-mole-game"),
+        (Join-Path $PSScriptRoot "..\backup\photo-mole-game_v1.3.0"),
+        (Join-Path $env:USERPROFILE ".workbuddy\skills\photo-mole-game"),
+        (Join-Path $PSScriptRoot "..\photo-mole-game")
     )
     foreach ($c in $candidates) {
         if (Test-Path (Join-Path $c "SKILL.md")) { $Payload = (Resolve-Path $c).Path; break }
