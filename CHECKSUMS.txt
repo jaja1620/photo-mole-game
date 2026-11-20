@@ -3,8 +3,9 @@ photo-mole-game v1.3.0 — release assets checksums
 
 52248d15b1e7b92301103e4e50f32904b9b2414e9b154351bd5126ce32efd82a  photo-mole-game-installer.exe  10436783
 4a63f892fb07f2d7239df1274d7bf7465d779f80e169655060249f973858035e  photo-mole-game_v1.3.0.zip      155111
-abb13e606b6d8cb3ff5355a40b89b38ae7d56f7ee91d71d0e510d535608c699f  RELEASE_NOTES_v1.3.0.md        13535
-b26d4303df49213713b5c1f4c2e7b878bd3c735c49f03bcda7837f463ee18018  RELEASE_NOTES_v1.3.0.en.md     14573
+11acae50ede606b02671a219b62748d87706d9d53aa37b0e231bf33b0cf1ab03  RELEASE_NOTES_v1.3.0.md        13645
+a91f09856ce39e2cd3bc0a3a0ada4c68fe87882047e7e3bdfc19179d479c6cc0  RELEASE_NOTES_v1.3.0.en.md     14716
+4371a448ae987e357bd6412aab074ab7fa67c9fe7097678dd71b76d6047a9199  CHECKSUMS-v1.3.0.txt          3291
 
 Verify on Windows:
   Get-FileHash .\photo-mole-game-installer.exe -Algorithm SHA256
@@ -15,5 +16,5 @@ Verify on macOS / Linux:
 Payload inside the installer / zip: skill v1.3.0, 19 files, 408,571 bytes.
 Installer build: PyInstaller 6.x (--onefile --windowed) on Python 3.11.8.
 
-Note: the digest of RELEASE_NOTES_v1.3.0.md changes whenever the release body is
-edited; the two binaries above never change inside a release.
+Note: RELEASE_NOTES digests change whenever the release body is edited;
+the two binaries (exe / zip) never change inside a release.
